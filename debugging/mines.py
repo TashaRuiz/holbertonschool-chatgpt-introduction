@@ -5,8 +5,9 @@ from collections import deque
 
 
 def clear_screen():
-    os.system('cls' if os.name == 'nt' else 'clear')
-
+    if os.name == 'nt': os.system('cls')
+    else:
+        print('\033[2J\033[H', end='')
 
 class Minesweeper:
     def __init__(self, width=10, height=10, mines=10):
@@ -18,14 +19,14 @@ class Minesweeper:
         self.mines = set(random.sample(range(width * height), mines))
 
         self.revealed = [
-            [False for _ in range(width)]
-            for _ in range(height)
-        ]
+                [False for _ in range(width)]
+                for _ in range(height)
+                ]
 
         self.flagged = [
-            [False for _ in range(width)]
-            for _ in range(height)
-        ]
+                [False for _ in range(width)]
+                for _ in range(height)
+                ]
 
     def print_board(self, reveal=False):
         clear_screen()
@@ -137,7 +138,7 @@ class Minesweeper:
             print("  f x y  = flag/unflag")
             print("  q      = quit")
 
-            command = input("\n> ").strip().split()
+            command = input("\n> ").strip().lower()
 
             if not command:
                 continue
@@ -146,37 +147,33 @@ class Minesweeper:
                 print("Thanks for playing!")
                 break
 
-            if command[0].lower() not in ("r", "f") or len(command) != 3:
-                print("Invalid command.")
-                input("Press Enter to continue...")
-                continue
+            if command == "q":
+                print("Thanks for playing!")
+                break
 
-            try:
-                x = int(command[1])
-                y = int(command[2])
-            except ValueError:
-                print("Coordinates must be numbers.")
-                input("Press Enter to continue...")
-                continue
+            if command == "r":
+                x = int(input("Enter x coordinate: "))
+                y = int(input("Enter y coordinate: "))
+                if not self.reveal(x, y):
+                    ...
 
-            if not (0 <= x < self.width and 0 <= y < self.height):
-                print("Coordinates are outside the board.")
-                input("Press Enter to continue...")
-                continue
-
-            if command[0].lower() == "f":
+            elif command == "f":
+                x = int(input("Enter x coordinate: "))
+                y = int(input("Enter y coordinate: "))
                 self.toggle_flag(x, y)
 
             else:
-                if not self.reveal(x, y):
-                    self.print_board(reveal=True)
-                    print("\n Game Over! You hit a mine.")
-                    break
+                print("Invalid command.")
 
-                if self.has_won():
-                    self.print_board(reveal=True)
-                    print("\n Congratulations! You cleared the board!")
-                    break
+            if not self.reveal(x, y):
+                self.print_board(reveal=True)
+                print("\n Game Over! You hit a mine.")
+                break
+
+            if self.has_won():
+                self.print_board(reveal=True)
+                print("\n Congratulations! You cleared the board!")
+                break
 
 
 if __name__ == "__main__":
